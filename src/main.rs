@@ -1,7 +1,10 @@
-#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
 use std::time::{Duration, Instant};
 
 use egui::{hex_color, vec2, CentralPanel, Context, ProgressBar};
+
+const PER_FULL_BREATH: f32 = 60000. / 5.5;
+const PER_HALF_BREATH: f32 = PER_FULL_BREATH / 2.;
 
 fn main() {
     let options = eframe::NativeOptions {
@@ -33,14 +36,15 @@ impl eframe::App for MyApp {
     fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
         CentralPanel::default().show(ctx, |ui| {
             ctx.request_repaint_after(Duration::from_millis(16));
-            let seconds_passed = self.start.elapsed().as_secs();
-            let breaths_completed = seconds_passed / 11;
-            let progress = match (self.start.elapsed().as_millis() % 11000) as f32 {
-                elapsed if elapsed < 5500. => elapsed / 5500.,
-                elapsed => (11000. - elapsed) / 5500.,
+            let millis_passed = self.start.elapsed().as_millis();
+            let breaths_completed = millis_passed as f32 / PER_FULL_BREATH;
+            let progress = match self.start.elapsed().as_millis() as f32 % PER_FULL_BREATH {
+                elapsed if elapsed < PER_HALF_BREATH => elapsed / PER_HALF_BREATH,
+                elapsed => (PER_FULL_BREATH - elapsed) / PER_HALF_BREATH,
             };
             ui.add(ProgressBar::new(progress).fill(hex_color!("#2dbfb8")));
-            ui.label(format!("Breaths completed: {}", breaths_completed));
+            ui.label(format!("Breaths completed: {}", breaths_completed as i8));
+            let seconds_passed = self.start.elapsed().as_secs();
             let (minutes, seconds) = (seconds_passed / 60, seconds_passed % 60);
             let (hours, minutes) = (minutes / 60, minutes % 60);
             let time_passed = format!("{:0>2}:{:0>2}:{:0>2}", hours, minutes, seconds);
