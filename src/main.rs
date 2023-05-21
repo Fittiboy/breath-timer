@@ -1,4 +1,8 @@
-#![allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+#![allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss
+)]
 use std::time::{Duration, Instant};
 
 use egui::{hex_color, vec2, CentralPanel, Context, ProgressBar};
@@ -43,7 +47,7 @@ impl eframe::App for MyApp {
                 elapsed => (PER_FULL_BREATH - elapsed) / PER_HALF_BREATH,
             };
             ui.add(ProgressBar::new(progress).fill(hex_color!("#2dbfb8")));
-            ui.label(format!("Breaths completed: {}", breaths_completed as i8));
+            ui.label(format!("Breaths completed: {}", breaths_completed as u32));
             let seconds_passed = self.start.elapsed().as_secs();
             let (minutes, seconds) = (seconds_passed / 60, seconds_passed % 60);
             let (hours, minutes) = (minutes / 60, minutes % 60);
